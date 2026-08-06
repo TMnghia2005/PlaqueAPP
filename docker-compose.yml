@@ -1,0 +1,44 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=plaque_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d plaque_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/plaque_db?schema=public
+      - PORT=4000
+      - JWT_SECRET=supersecret
+    volumes:
+      - storage-data:/app/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_URL=http://192.168.100.35:4000
+    depends_on:
+      - api
+
+volumes:
+  db-data:
+  storage-data:

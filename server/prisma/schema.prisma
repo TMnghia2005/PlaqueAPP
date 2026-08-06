@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("doctor") // doctor, admin
+  createdAt DateTime @default(now())
+}
+
+model Patient {
+  id          String   @id
+  name        String
+  dateOfBirth String?
+  gender      String?
+  phone       String?
+  notes       String?
+  visits      Visit[]
+  createdAt   DateTime @default(now())
+}
+
+model Visit {
+  id        String   @id @default(uuid())
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  patientId String
+  date      String
+  notes     String?
+  status    String   @default("pending") // pending, completed
+  scans     Scan[]
+  createdAt DateTime @default(now())
+}
+
+model Scan {
+  id              Int              @id @default(autoincrement())
+  visit           Visit            @relation(fields: [visitId], references: [id])
+  visitId         String
+  photos          Photo[]
+  diagnosisResult DiagnosisResult?
+  createdAt       DateTime         @default(now())
+}
+
+model Photo {
+  id          Int    @id @default(autoincrement())
+  positionId  String
+  storageKey  String // MinIO storage key
+  originalName String?
+  scan        Scan   @relation(fields: [scanId], references: [id])
+  scanId      Int
+}
+
+model Instruction {
+  id          Int    @id @default(autoincrement())
+  title       String
+  description String
+  order       Int    @default(0)
+}
+
+model DiagnosisResult {
+  id           Int      @id @default(autoincrement())
+  scan         Scan     @relation(fields: [scanId], references: [id])
+  scanId       Int      @unique
+  globalOpi    Float
+  accuracy     Int
+  severity     String
+  createdAt    DateTime @default(now())
+  toothScores  ToothScore[]
+  treatments   TreatmentRecommendation[]
+}
+
+model ToothScore {
+  id                Int             @id @default(autoincrement())
+  diagnosisResult   DiagnosisResult @relation(fields: [diagnosisResultId], references: [id])
+  diagnosisResultId Int
+  positionCode      String
+  toothNumber       String
+  name              String
+  opiScore          Float
+  severity          String
+}
+
+model TreatmentRecommendation {
+  id                Int             @id @default(autoincrement())
+  diagnosisResult   DiagnosisResult @relation(fields: [diagnosisResultId], references: [id])
+  diagnosisResultId Int
+  title             String
+  detail            String
+  order             Int
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Plaque Diagnosis",
+  "description": "A dental plaque diagnosis camera app that captures 9 dental positions, confirms photos, processes analysis with live progress, and presents clinical results.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
